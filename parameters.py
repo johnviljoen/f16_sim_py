@@ -94,7 +94,7 @@ lef_min = 0. # (deg)
 
 # In[simulation parameters]  
 
-time_step, time_start, time_end = 0.001, 0., 4.
+time_step, time_start, time_end = 0.001, 0., 3.
 
 # fi_flag = 1 -> high fidelity model (full Nguyen)
 # fi_flag = 1 -> low fidelity model (Stevens Lewis reduced)
