@@ -19,25 +19,24 @@ from scipy.constants import g
 ''' states in m/s, rad, rad/s '''
 npos = 0. # m
 epos = 0. # m
-h = 5000. # m
+h = 3048. # m
 phi = 0.    # rad
 theta = 0. # rad
 psi = 0. # rad
 
-vt = 200. # m/s
-alpha = 2.3 * pi/180 # rad
+vt = 213.36 # m/s
+alpha = 1.0721 * pi/180 # rad
 beta = 0. # rad
 p = 0. # rad/s
 q = 0. # rad/s
 r = 0. # rad/s
 
 ''' control states in rad '''
-T = 450.
-dh = -3.05 * pi/180
-da = 0. * pi/180
-dr = 0. * pi/180
-lef = 0.
-
+T = 2757.4449
+dh = -1.2709 #* pi/180
+da = -0.089479 #* pi/180
+dr = -0.040362 #* pi/180
+lef = 0.25012
 
 # In[aircraft parameters]  
 
@@ -57,7 +56,6 @@ He                      = 216.9         # engine angular momentum constant
 
 x_cg_ref                = 0.35 * cbar   # assuming mac = cbar
 x_cg                    = 0.8*x_cg_ref  # FOR NOW THIS IS WRONG
-
 
 dh_limits               = 25.           # degrees +-
 da_limits               = 5.375         # degrees +-
@@ -103,7 +101,7 @@ fi_flag = 1
 # stability_flag only functional for high fidelity model currently!
 # stability_flag = 1 -> unstable xcg 35% model
 # stability_flag = 0 -> stable xcg 25% model
-stability_flag = 1
+stability_flag = 0
 
 # In[wrap for input]  
 

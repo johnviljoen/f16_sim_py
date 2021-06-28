@@ -12,20 +12,11 @@ from numpy import pi
 # import matplotlib for visualisation
 import matplotlib.pyplot as plt
 
-# import cython for C library calls
-# import cython
-
 # import progressbar for convenience
 import progressbar
 
 # import parameters
 from parameters import aircraft_properties, initial_state_vector, simulation_parameters
-
-# import utility functions
-# from utils import angle2quat, quat2angle, qdot_calc
-
-# import scipy integrator RK45
-# from scipy.integrate import RK45
 
 # import exit() function for debugging
 from sys import exit
@@ -62,24 +53,13 @@ nlplant = CDLL(so_file)
 xu = initial_state_vector_ft_rad
 xdot = np.zeros(18)
 
+# initialise Mach, qbar, ps storage
+coeff = np.zeros(3)
+
+# initialise LF_state
+LF_state = -xu[7] * 180/pi
+
 # In[]
-
-#----------------------------------------------------------------------------#
-#-------------------------functions for simulation---------------------------#
-#----------------------------------------------------------------------------#
-
-def update_xdot(xu, xdot, fi_flag):
-
-    nlplant.Nlplant(ctypes.c_void_p(xu.ctypes.data), ctypes.c_void_p(xdot.ctypes.data), ctypes.c_int(fi_flag))
-
-
-def update_xu(xu, xdot, time_step):
-
-    xu[0:11] = xu[0:11] + xdot[0:11]*time_step
-
-    # lets upgrade to quaternions!
-
-    return xu
 
 #----------------------------------------------------------------------------#
 #---------------------------------Simulate-----------------------------------#
@@ -87,22 +67,27 @@ def update_xu(xu, xdot, time_step):
 
 rng = np.linspace(time_start, time_end, int((time_end-time_start)/time_step))
 bar = progressbar.ProgressBar(maxval=len(rng)).start()
+
 # create storage
 xu_storage = np.zeros([len(rng),len(xu)])
 xdot_storage = np.zeros([len(rng),len(xdot)])
 
 for idx, val in enumerate(rng):
     
+    #----------------------------------------#
     #--------------Take Action---------------#
-    T_cmd = 2000.
-    dstab_cmd = 0.
-    ail_cmd = 0.
-    rud_cmd = 0.
-    lef_cmd = 0.
+    #----------------------------------------#
     
+    T_cmd = 2757.4449
+    dstab_cmd = -1.2709
+    ail_cmd = -0.089479
+    rud_cmd = -0.040362
+    
+    #----------------------------------------#
     #------------Actuator Models-------------#
+    #----------------------------------------#
     
-    ### thrust
+    #--------------Thrust Model--------------#
     # command saturation
     T_cmd = np.clip(T_cmd,1000,19000)
     
@@ -112,7 +97,7 @@ for idx, val in enumerate(rng):
     # integrate
     xu[12] += T_err*time_step
     
-    ### Dstab
+    #--------------Dstab Model---------------#
     # command saturation
     dstab_cmd = np.clip(dstab_cmd,-25,25)
     
@@ -122,7 +107,7 @@ for idx, val in enumerate(rng):
     # integrate
     xu[13] += dstab_err*time_step
     
-    ### aileron
+    #-------------aileron model--------------#
     # command saturation
     ail_cmd = np.clip(ail_cmd,-21.5,21.5)
     
@@ -132,7 +117,7 @@ for idx, val in enumerate(rng):
     # integrate
     xu[14] += ail_err*time_step
     
-    ### rudder
+    #--------------rudder model--------------#
     # command saturation
     rud_cmd = np.clip(rud_cmd,-30,30)
     
@@ -142,10 +127,21 @@ for idx, val in enumerate(rng):
     # integrate
     xu[15] += rud_err*time_step
     
-    ### leading edge flap
+    #--------leading edge flap model---------#
     # find command from current states
-    xu[2] # altitude
-    xu[6] # velocity
+    nlplant.atmos(ctypes.c_double(xu[2]),ctypes.c_double(xu[6]),ctypes.c_void_p(coeff.ctypes.data))
+    atmos_out = coeff[1]/coeff[2] * 9.05
+    
+    alpha_deg = xu[7]*180/pi
+    
+    #########PROBLEM#############
+    LF_err = alpha_deg - (LF_state + (2 * alpha_deg))
+    LF_state += LF_err*7.25*time_step
+    #############################
+    
+    LF_out = (LF_state + (2 * alpha_deg)) * 1.38
+    
+    lef_cmd = LF_out + 1.45 - atmos_out
     
     # command saturation
     lef_cmd = np.clip(lef_cmd,0,25)
@@ -155,18 +151,25 @@ for idx, val in enumerate(rng):
     
     # integrate
     xu[16] += lef_err*time_step
-        
+    
+    #----------run nlplant for xdot----------#
+    nlplant.Nlplant(ctypes.c_void_p(xu.ctypes.data), ctypes.c_void_p(xdot.ctypes.data), ctypes.c_int(fi_flag))
+    
+    #----------------------------------------#
     #--------------Integrator----------------#
-    update_xdot(xu, xdot, fi_flag)
-    xu = update_xu(xu, xdot, time_step)
-
+    #----------------------------------------#
+    
+    # update xu
+    xu[0:11] += xdot[0:11]*time_step
+    
+    #----------------------------------------#
     #------------Store History---------------#
+    #----------------------------------------#
+    
     xu_storage[idx,:] = xu
     xdot_storage[idx,:] = xdot
 
     bar.update(idx)
-
-#print(xu_storage.shape)
 
 # In[]
 
@@ -215,6 +218,22 @@ axs[11].plot(rng, xu_storage[:,11])
 axs[11].set_ylabel('r (rad/s)')
 axs[11].set_xlabel('time (s)')
 
+fig2, axs2 = plt.subplots(5,1)
+
+axs2[0].plot(rng, xu_storage[:,12])
+axs2[0].set_ylabel('P3')
+
+axs2[1].plot(rng, xu_storage[:,13])
+axs2[1].set_ylabel('dh')
+
+axs2[2].plot(rng, xu_storage[:,14])
+axs2[2].set_ylabel('da')
+
+axs2[3].plot(rng, xu_storage[:,15])
+axs2[3].set_ylabel('dr')
+
+axs2[4].plot(rng, xu_storage[:,16])
+axs2[4].set_ylabel('lef')
 
 
 # %%
