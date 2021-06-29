@@ -12,7 +12,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-so_file = os.getcwd() + "/C/nlplant_xcg35.so"
+so_file = os.getcwd() + "/C/nlplant_xcg25.so"
 nlplant = CDLL(so_file)
 
 xu = np.zeros(18)
