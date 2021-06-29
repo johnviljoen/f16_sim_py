@@ -59,6 +59,10 @@ coeff = np.zeros(3)
 # initialise LF_state
 LF_state = -xu[7] * 180/pi
 
+# 
+LF_tf = tf([2,7.25],[1,7.25])
+LF_tfd = c2d(LF_tf,time_step,method='zoh')
+
 # In[]
 
 #----------------------------------------------------------------------------#
@@ -78,10 +82,10 @@ for idx, val in enumerate(rng):
     #--------------Take Action---------------#
     #----------------------------------------#
     
-    T_cmd = 2757.4449
-    dstab_cmd = -1.2709
-    ail_cmd = -0.089479
-    rud_cmd = -0.040362
+    T_cmd = 2886.6468
+    dstab_cmd = -2.0385
+    ail_cmd = -0.087577
+    rud_cmd = -0.03877
     
     #----------------------------------------#
     #------------Actuator Models-------------#
@@ -90,65 +94,44 @@ for idx, val in enumerate(rng):
     #--------------Thrust Model--------------#
     # command saturation
     T_cmd = np.clip(T_cmd,1000,19000)
-    
     # rate saturation
     T_err = np.clip(T_cmd - xu[12], -10000, 10000)
-    
     # integrate
     xu[12] += T_err*time_step
-    
     #--------------Dstab Model---------------#
     # command saturation
     dstab_cmd = np.clip(dstab_cmd,-25,25)
-    
     # rate saturation
     dstab_err = np.clip(20.2*(dstab_cmd - xu[13]), -60, 60)
-    
     # integrate
     xu[13] += dstab_err*time_step
-    
     #-------------aileron model--------------#
     # command saturation
     ail_cmd = np.clip(ail_cmd,-21.5,21.5)
-    
     # rate saturation
     ail_err = np.clip(20.2*(ail_cmd - xu[14]), -80, 80)
-    
     # integrate
     xu[14] += ail_err*time_step
-    
     #--------------rudder model--------------#
     # command saturation
     rud_cmd = np.clip(rud_cmd,-30,30)
-    
     # rate saturation
     rud_err = np.clip(20.2*(rud_cmd - xu[15]), -120, 120)
-    
     # integrate
     xu[15] += rud_err*time_step
-    
     #--------leading edge flap model---------#
     # find command from current states
     nlplant.atmos(ctypes.c_double(xu[2]),ctypes.c_double(xu[6]),ctypes.c_void_p(coeff.ctypes.data))
     atmos_out = coeff[1]/coeff[2] * 9.05
-    
     alpha_deg = xu[7]*180/pi
-    
-    #########PROBLEM#############
     LF_err = alpha_deg - (LF_state + (2 * alpha_deg))
     LF_state += LF_err*7.25*time_step
-    #############################
-    
     LF_out = (LF_state + (2 * alpha_deg)) * 1.38
-    
     lef_cmd = LF_out + 1.45 - atmos_out
-    
     # command saturation
     lef_cmd = np.clip(lef_cmd,0,25)
-    
     # rate saturation
     lef_err = np.clip((1/0.136) * (lef_cmd - xu[16]),-25,25)
-    
     # integrate
     xu[16] += lef_err*time_step
     
@@ -202,20 +185,20 @@ axs[5].set_ylabel('$\psi$ (rad)')
 axs[6].plot(rng, xu_storage[:,6])
 axs[6].set_ylabel("V_t (ft/s)")
 
-axs[7].plot(rng, xu_storage[:,7])
-axs[7].set_ylabel('alpha (rad)')
+axs[7].plot(rng, xu_storage[:,7]*180/pi)
+axs[7].set_ylabel('alpha (deg)')
 
-axs[8].plot(rng, xu_storage[:,8])
-axs[8].set_ylabel('beta (rad)')
+axs[8].plot(rng, xu_storage[:,8]*180/pi)
+axs[8].set_ylabel('beta (deg)')
 
-axs[9].plot(rng, xu_storage[:,9])
-axs[9].set_ylabel('p (rad/s)')
+axs[9].plot(rng, xu_storage[:,9]*180/pi)
+axs[9].set_ylabel('p (deg/s)')
 
-axs[10].plot(rng, xu_storage[:,10])
-axs[10].set_ylabel('q (rad/s)')
+axs[10].plot(rng, xu_storage[:,10]*180/pi)
+axs[10].set_ylabel('q (deg/s)')
 
-axs[11].plot(rng, xu_storage[:,11])
-axs[11].set_ylabel('r (rad/s)')
+axs[11].plot(rng, xu_storage[:,11]*180/pi)
+axs[11].set_ylabel('r (deg/s)')
 axs[11].set_xlabel('time (s)')
 
 fig2, axs2 = plt.subplots(5,1)

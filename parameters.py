@@ -32,11 +32,11 @@ q = 0. # rad/s
 r = 0. # rad/s
 
 ''' control states in rad '''
-T = 2757.4449
-dh = -1.2709 #* pi/180
-da = -0.089479 #* pi/180
-dr = -0.040362 #* pi/180
-lef = 0.25012
+T = 2886.6468
+dh = -2.0385 #* pi/180
+da = -0.087577 #* pi/180
+dr = -0.03877 #* pi/180
+lef = 0.3986
 
 # In[aircraft parameters]  
 
@@ -92,7 +92,7 @@ lef_min = 0. # (deg)
 
 # In[simulation parameters]  
 
-time_step, time_start, time_end = 0.001, 0., 3.
+time_step, time_start, time_end = 0.001, 0., 30.
 
 # fi_flag = 1 -> high fidelity model (full Nguyen)
 # fi_flag = 1 -> low fidelity model (Stevens Lewis reduced)
