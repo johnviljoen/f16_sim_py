@@ -16,13 +16,10 @@ import matplotlib.pyplot as plt
 import progressbar
 
 # import parameters
-from parameters import aircraft_properties, initial_state_vector, simulation_parameters
+from parameters import initial_state_vector, simulation_parameters
 
 # import exit() function for debugging
 from sys import exit
-
-# control systems library for actuator modelling
-from control.matlab import *
 
 # In[]
 
@@ -58,10 +55,6 @@ coeff = np.zeros(3)
 
 # initialise LF_state
 LF_state = -xu[7] * 180/pi
-
-# 
-LF_tf = tf([2,7.25],[1,7.25])
-LF_tfd = c2d(LF_tf,time_step,method='zoh')
 
 # In[]
 
@@ -143,7 +136,7 @@ for idx, val in enumerate(rng):
     #----------------------------------------#
     
     # update xu
-    xu[0:11] += xdot[0:11]*time_step
+    xu[0:12] += xdot[0:12]*time_step
     
     #----------------------------------------#
     #------------Store History---------------#
