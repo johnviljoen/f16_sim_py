@@ -1,6 +1,26 @@
+# Requirements and Quick Start
+
+> Libraries:
+- ctypes
+- os
+- numpy
+- matplotlib
+- progressbar
+
+> OS
+- Linux only (due to the use of CDLL to call .so file, which Windows does not appear to accept, Mac may work but is untested)
+
+Simply running main.py will simulate a 3 second time history near wings level trim at 10000 ft, 700 ft/s for the stable version of the high fidelity model.
+
 # Description
 
-This is a simulation of an F16 based upon two works:
+This is an extremely simple yet high fidelity simulation of an F16 callable from Python. This simulation can be used for control design, it could be turned into a reinforcement learning custom environment, nonlinear aerodynamic analysis could also be done thanks to the expansive ranges of the lookup tables defined below.
+
+This simulation comes with no prebuilt control systems (with the exception of the leading edge flap in the high fidelity model, but this is outside of control design scope for most purposes - and it can be altered if the user desires).
+
+The integrator used is a simple fixed time step using no libraries.
+
+This simulation is based upon two works:
 
 1. Nguyen "Simulator study of stall/post-stall characteristics of a fighter airplane with relaxed longitudinal static stability" - https://core.ac.uk/download/pdf/42866809.pdf
 
@@ -24,6 +44,6 @@ gcc -fPIC -shared -lm -o nlplant.so nlplant.c
 
 These two files are selected in the Python main.py using the "stability_flag" which is 1 for unstable and 0 for stable.
 
-main.py calls the .so file using ctypes.CDLL. This allows access for individual functions in nlplant.so, two of which are called by main.py -> Nlplant and atmos. Nlplant is the main aforementioned one which generates the state derivates, and atmos is used for calculating the leading edge flap (lef) deflection, which is a function of a number of variables.
+main.py calls the .so file using ctypes.CDLL. This allows access for individual functions in nlplant.so, two of which are called by main.py -> Nlplant and atmos. Nlplant is the main aforementioned one which generates the state derivates, and atmos is used for calculating the leading edge flap (lef) deflection.
 
 
